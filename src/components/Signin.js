@@ -1,12 +1,14 @@
 import React, { useRef } from 'react'
 import { auth } from '../firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword  } from "firebase/auth"
 import './Signin.css'
 const Signin = () => {
     const emailRef = useRef(null);
     const passwordRef = useRef(null);
     const signUp = e => {
         e.preventDefault();
-        auth.createUserWithEmailAndPassword(
+        createUserWithEmailAndPassword(
+            auth,
             emailRef.current.value,
             passwordRef.current.value
         ).then(user => {
@@ -17,7 +19,8 @@ const Signin = () => {
     }
     const signIn = e => {
         e.preventDefault();
-        auth.signInWithEmailAndPassword(
+        signInWithEmailAndPassword( 
+            auth,
             emailRef.current.value,
             passwordRef.current.value
         ).then(user => {
@@ -26,7 +29,7 @@ const Signin = () => {
             console.log(err)
         })
     }
-    return (
+    return <>
         <div className="signin">
             <form action="">
                 <h1>Sign in</h1>
@@ -36,7 +39,7 @@ const Signin = () => {
                 <h6>Not yet register? <span onClick={signUp} className="signin__link">Sign up</span></h6>
             </form>
         </div>
-    )
+    </>
 }
 
 export default Signin

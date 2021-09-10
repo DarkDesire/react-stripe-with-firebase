@@ -1,6 +1,7 @@
 import { loadStripe } from '@stripe/stripe-js'
 import React, { useState, useEffect, useContext } from 'react'
 import db, { auth } from '../firebase'
+import { collection, getDocs, query, where } from "firebase/firestore"; 
 import { UserContext } from '../UserContext'
 import './Home.css'
 
@@ -8,41 +9,49 @@ const Home = () => {
     const [products, setProducts] = useState([])
     const [subscription, setSubscription] = useState(null);
     const { user } = useContext(UserContext)
-    useEffect(() => {
-        db.collection("customers").doc(user.uid).collection("subscriptions").get().then(snapshot => {
-            snapshot.forEach(subscription => {
-                console.log('subscription', subscription.data())
-                setSubscription({
-                    role: subscription.data().role,
-                    current_period_start: subscription.data().current_period_start,
-                    current_period_end: subscription.data().current_period_end
+    //useEffect(() => {
+        //const customersRef = collection(db, "cities");
+        //const querySnapshot = await getDocs(customersRef);
 
-                })
-            })
-        })
-    }, [])
+        // db.collection("customers").doc(user.uid).collection("subscriptions").get().then(snapshot => {
+        //     snapshot.forEach(subscription => {
+        //         console.log('subscription', subscription.data())
+        //         setSubscription({
+        //             role: subscription.data().role,
+        //             current_period_start: subscription.data().current_period_start,
+        //             current_period_end: subscription.data().current_period_end
+
+        //         })
+        //     })
+        // })
+    //}, [])
 
     useEffect(() => {
-        db.collection('products').where('active', '==', true).get().then(snapshot => {
+        const load = async () => {
+            const productsRef = collection(db, "products");
+            const q = query(productsRef, where('active', '==', true));
+            console.log(q)
+            const querySnapshot = await getDocs(q);
+    
             const products = {}
-            snapshot.forEach(async productDoc => {
-
-                // products[productDoc.id]
-                products[productDoc.id] = productDoc.data()
-                const priceSnapshot = await productDoc.ref.collection('prices').get();
-                priceSnapshot.forEach(priceDoc => {
-                    products[productDoc.id].prices = {
-                        priceId: priceDoc.id,
-                        priceData: priceDoc.data()
+            querySnapshot.forEach( async doc => {
+                // doc.data() is never undefined for query doc snapshots
+                products[doc.id] = doc.data()
+                const pricesRef = collection(db, "products", doc.id, "prices");
+                const pricesSnapshot = await getDocs(pricesRef);
+                pricesSnapshot.forEach( price => {
+                    products[doc.id].prices = {
+                        priceId: price.id,
+                        priceData: price.data()
                     }
                 })
-
-            })
+            });
             console.log('products', products)
             console.log('Object.entries', Object.entries(products))
             setProducts(products)
-        })
-
+    
+        }
+        load()
     }, [])
     const checkOut = async (priceId) => {
         console.log('checkout')
@@ -65,7 +74,7 @@ const Home = () => {
             }
         })
     }
-    return (
+    return <>
         <div>
             <h1>Welcome home  </h1>
             <p><button onClick={() => auth.signOut()}>Sign out</button></p>
@@ -79,7 +88,7 @@ const Home = () => {
                 )
             })}
         </div>
-    )
+    </>
 }
 
 export default Home

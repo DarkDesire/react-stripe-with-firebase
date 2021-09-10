@@ -1,16 +1,24 @@
-import firebase from 'firebase'
-var firebaseConfig = {
-    apiKey: "AIzaSyC2pe01Hu4zt5l0dxUrVXRKPkoiqMLZSA8",
-    authDomain: "reactstripe-d0444.firebaseapp.com",
-    projectId: "reactstripe-d0444",
-    storageBucket: "reactstripe-d0444.appspot.com",
-    messagingSenderId: "82941585725",
-    appId: "1:82941585725:web:302e857383cedbf4f67d54"
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
 };
+
+const stripe = {
+}
+
 // Initialize Firebase
-const firebaseApp = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+const firebaseApp = initializeApp(firebaseConfig);
+const analytics = getAnalytics(firebaseApp);
+const db = getFirestore();
+const auth = getAuth();
 export { auth };
 export default db;

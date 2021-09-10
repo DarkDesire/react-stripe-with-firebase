@@ -9,7 +9,7 @@ function App() {
   const [user, setUser] = useState(null)
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(userAuth => {
-      const user = {
+      const user = { 
         uid: userAuth?.uid,
         email: userAuth?.email
       }
@@ -22,13 +22,13 @@ function App() {
     })
     return unsubscribe
   }, [])
-  return (
+  return <>
     <div className="App">
       <UserContext.Provider value={{ user }}>
         {user ? <Home /> : <Signin />}
       </UserContext.Provider>
     </div>
-  );
+  </>
 }
 
 export default App;
