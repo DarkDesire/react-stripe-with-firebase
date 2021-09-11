@@ -11,8 +11,8 @@ const Signin = () => {
             auth,
             emailRef.current.value,
             passwordRef.current.value
-        ).then(user => {
-            console.log(user)
+        ).then(userCredential => {
+            console.log('user',userCredential.user)
         }).catch(err => {
             console.log(err)
         })
@@ -23,8 +23,8 @@ const Signin = () => {
             auth,
             emailRef.current.value,
             passwordRef.current.value
-        ).then(user => {
-            console.log(user)
+        ).then(userCredential => {
+            console.log('user',userCredential.user)
         }).catch(err => {
             console.log(err)
         })
@@ -33,8 +33,8 @@ const Signin = () => {
         <div className="signin">
             <form action="">
                 <h1>Sign in</h1>
-                <input ref={emailRef} type="email" />
-                <input ref={passwordRef} type="password" />
+                <input ref={emailRef} type="email"/>
+                <input ref={passwordRef} type="password"/>
                 <button onClick={signIn}>Sign in </button>
                 <h6>Not yet register? <span onClick={signUp} className="signin__link">Sign up</span></h6>
             </form>

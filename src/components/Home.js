@@ -1,7 +1,7 @@
 import { loadStripe } from '@stripe/stripe-js'
 import React, { useState, useEffect, useContext } from 'react'
 import db, { auth } from '../firebase'
-import { collection, getDocs, query, where } from "firebase/firestore"; 
+import { collection, getDocs, query, where, addDoc } from "firebase/firestore"; 
 import { UserContext } from '../UserContext'
 import './Home.css'
 
@@ -9,22 +9,24 @@ const Home = () => {
     const [products, setProducts] = useState([])
     const [subscription, setSubscription] = useState(null);
     const { user } = useContext(UserContext)
-    //useEffect(() => {
-        //const customersRef = collection(db, "cities");
-        //const querySnapshot = await getDocs(customersRef);
-
-        // db.collection("customers").doc(user.uid).collection("subscriptions").get().then(snapshot => {
-        //     snapshot.forEach(subscription => {
-        //         console.log('subscription', subscription.data())
-        //         setSubscription({
-        //             role: subscription.data().role,
-        //             current_period_start: subscription.data().current_period_start,
-        //             current_period_end: subscription.data().current_period_end
-
-        //         })
-        //     })
-        // })
-    //}, [])
+    useEffect(() => {
+        const load = async () => {
+            const colRef = collection(db, "customers", user.uid, "subscriptions")
+            const subscriptionsSnapshot = await getDocs(colRef);
+            console.log('subscriptionsSnapshot',subscriptionsSnapshot)
+            subscriptionsSnapshot.forEach( snapshot => {
+                console.log('snapshot',snapshot)
+                const subscription = snapshot.data()
+                console.log('subscription', subscription)
+                setSubscription({
+                    role: subscription.role,
+                    current_period_start: subscription.current_period_start,
+                    current_period_end: subscription.current_period_end
+                })
+            })
+        }
+        load()
+    }, [])
 
     useEffect(() => {
         const load = async () => {
@@ -54,25 +56,29 @@ const Home = () => {
         load()
     }, [])
     const checkOut = async (priceId) => {
-        console.log('checkout')
-        const docRef = await db.collection("customers").doc(user.uid).collection("checkout_sessions").add({
-            price: priceId,
-            success_url: window.location.origin,
-            cancel_url: window.location.origin,
-
-        })
-        docRef.onSnapshot(async (snap) => {
-            const { error, sessionId } = snap.data();
-            if (error) {
-                console.log('error')
-                alert(error.message)
-            }
-            if (sessionId) {
-                console.log('sessionId')
-                const stripe = await loadStripe("pk_test_51INW8eAI3J7s6NihgTfXwK6LckSo4tEJ1WhsoUmWGDftnJOBlXAXCSAqCVkSw89xsgAQjvtpMCTjTMknulKZ2wj900Nus791uw");
-                stripe.redirectToCheckout({ sessionId })
-            }
-        })
+        const add = async () => {
+            const colRef = collection(db, "customers", user.uid, "checkout_sessions")
+            await addDoc(colRef, {
+                price :priceId,
+                success_url: window.location.origin,
+                cancel_url: window.location.origin,
+            });
+            const sessionsSnapshot = await getDocs(colRef);
+            sessionsSnapshot.forEach( async session => {
+                console.log('session', session)
+                const { error, sessionId } = session.data();
+                if (error) {
+                    console.log('error')
+                    alert(error.message)
+                }
+                if (sessionId) {
+                    alert(sessionId)
+                    const stripe = await loadStripe("PK");
+                    stripe.redirectToCheckout({ sessionId })
+                }
+            })
+        }
+        add()
     }
     return <>
         <div>
