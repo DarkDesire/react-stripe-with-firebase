@@ -1,10 +1,11 @@
 import { loadStripe } from '@stripe/stripe-js'
 import React, { useState, useEffect, useContext } from 'react'
 import db, { auth } from '../firebase'
-import { collection, getDocs, query, where, addDoc } from "firebase/firestore"; 
+import { collection, getDocs, onSnapshot, doc, query, where, addDoc } from "firebase/firestore"; 
 import { UserContext } from '../UserContext'
 import './Home.css'
 
+const StripePubKey = ""
 const Home = () => {
     const [products, setProducts] = useState([])
     const [subscription, setSubscription] = useState(null);
@@ -13,9 +14,8 @@ const Home = () => {
         const load = async () => {
             const colRef = collection(db, "customers", user.uid, "subscriptions")
             const subscriptionsSnapshot = await getDocs(colRef);
-            console.log('subscriptionsSnapshot',subscriptionsSnapshot)
+            console.log(subscriptionsSnapshot.empty ? "subscriptions zero": subscriptionsSnapshot)
             subscriptionsSnapshot.forEach( snapshot => {
-                console.log('snapshot',snapshot)
                 const subscription = snapshot.data()
                 console.log('subscription', subscription)
                 setSubscription({
@@ -32,8 +32,8 @@ const Home = () => {
         const load = async () => {
             const productsRef = collection(db, "products");
             const q = query(productsRef, where('active', '==', true));
-            console.log(q)
             const querySnapshot = await getDocs(q);
+            console.log(querySnapshot.empty ? "products zero": querySnapshot)
     
             const products = {}
             querySnapshot.forEach( async doc => {
@@ -49,7 +49,6 @@ const Home = () => {
                 })
             });
             console.log('products', products)
-            console.log('Object.entries', Object.entries(products))
             setProducts(products)
     
         }
@@ -58,22 +57,20 @@ const Home = () => {
     const checkOut = async (priceId) => {
         const add = async () => {
             const colRef = collection(db, "customers", user.uid, "checkout_sessions")
-            await addDoc(colRef, {
-                price :priceId,
+            const docRef = await addDoc(colRef, {
+                price: priceId,
                 success_url: window.location.origin,
                 cancel_url: window.location.origin,
-            });
-            const sessionsSnapshot = await getDocs(colRef);
-            sessionsSnapshot.forEach( async session => {
-                console.log('session', session)
-                const { error, sessionId } = session.data();
+            })
+            onSnapshot(docRef, async (snap) => {
+                const { error, sessionId } = snap.data();
                 if (error) {
                     console.log('error')
                     alert(error.message)
                 }
                 if (sessionId) {
-                    alert(sessionId)
-                    const stripe = await loadStripe("PK");
+                    console.log('sessionId')
+                    const stripe = await loadStripe(StripePubKey);
                     stripe.redirectToCheckout({ sessionId })
                 }
             })
@@ -83,7 +80,7 @@ const Home = () => {
     return <>
         <div>
             <h1>Welcome home  </h1>
-            <p><button onClick={() => auth.signOut()}>Sign out</button></p>
+            <p><button className="authButton" onClick={() => auth.signOut()}>Sign out</button></p>
             {Object.entries(products).map(([productId, productData]) => {
                 const isCurrentPlan = productData?.name?.toLowerCase().includes(subscription?.role)
                 return (

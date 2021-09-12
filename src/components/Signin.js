@@ -35,7 +35,7 @@ const Signin = () => {
                 <h1>Sign in</h1>
                 <input ref={emailRef} type="email"/>
                 <input ref={passwordRef} type="password"/>
-                <button onClick={signIn}>Sign in </button>
+                <button className="authButton" onClick={signIn}>Sign in </button>
                 <h6>Not yet register? <span onClick={signUp} className="signin__link">Sign up</span></h6>
             </form>
         </div>

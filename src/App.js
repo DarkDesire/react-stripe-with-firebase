@@ -14,7 +14,6 @@ function App() {
         email: userAuth?.email
       }
       if (userAuth) {
-        console.log(userAuth)
         setUser(user)
       } else {
         setUser(null)
